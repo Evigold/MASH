@@ -1,59 +1,7 @@
-// #include <stdlib.h>
-// #include <stdio.h>
-// #include <string.h>
-// #include <readline/readline.h>
-// #include <unistd.h>
-// #include <sys/wait.h>
-
-// char **get_input(char *input);
-
-// int main() {
-//     char **command;
-//     char *input;
-//     pid_t child_pid;
-//     int stat_loc;
-
-//     while (1) {
-//         input = readline("unixsh> ");
-//         command = get_input(input);
-
-//         child_pid = fork();
-//         if (child_pid == 0) {
-//             // Never returns if the call is successful
-//             execvp(command[0], command);
-//             printf("This won't be printed if execvp is successful\n");
-//         } else {
-//             waitpid(child_pid, &stat_loc, WUNTRACED);
-//         }
-
-//         free(input);
-//         free(command);
-//     }
-//     return 0;
-// }
-
-// char **get_input(char *input) {
-//     char **command = malloc(8 * sizeof(char *));
-//     char *seperator = " ";
-//     char *parsed;
-//     int index = 0;
-
-//     parsed = strtok(input, seperator);
-//     while (parsed != NULL) {
-//         command[index] = parsed;
-//         index++;
-
-//         parsed = strtok(NULL, seperator);
-//     }
-
-//     command[index] = NULL;
-//     return command;
-// }
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <readline/readline.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
@@ -69,11 +17,14 @@ int main() {
         // input = readline("unixsh> ");
         size_t len;
         do {
-                printf("unixsh> ");
-                if ((getline(&input, &len, stdin) >=0) && !(len && input[0] == 'n')) {
-                        break;
-                }
+            printf("unixsh> ");
+            if ((getline(&input, &len, stdin) < 0) || (len && input[0] == 'n')) {
                 printf("error: faulty input\n");
+            } else {
+                printf("%s\n", input);
+                break;
+            }
+                
         } while(1);
         command = get_input(input);
 
