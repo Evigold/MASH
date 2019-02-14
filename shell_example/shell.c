@@ -66,7 +66,15 @@ int main() {
     int stat_loc;
 
     while (1) {
-        input = readline("unixsh> ");
+        // input = readline("unixsh> ");
+        size_t len;
+        do {
+                printf("unixsh> ");
+                if ((getline(&input, &len, stdin) >=0) && !(len && input[0] == 'n')) {
+                        break;
+                }
+                printf("error: faulty input\n");
+        } while(1);
         command = get_input(input);
 
         if (!command[0]) {      /* Handle empty commands */
