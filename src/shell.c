@@ -4,80 +4,77 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+void cmdExec();
+
 char **get_command(char *cmd);
 
 int cd(char *);
 
-void func(char *src, char *sub);
-    
-int exe(int cmdNum);
-
 int main(void) {
+    
     while (1) {
-        exe(1);
+        cmdExec();
     }
     return 0;
     
 }
 
-int exe(int cmdNum) {
+void cmdExec(){
     size_t len = 0;
 	ssize_t read = 0;
 	char *cmd;
-	char **args1;
+	char **args;
     int stat_loc;
     pid_t child_pid;
+
+    
     read = 0;
-    printf("mash-%d>", cmdNum);
+    printf("> ");
     read = getline(&cmd, &len, stdin);
-    args1 = get_command(cmd);
+    args = get_command(cmd);
         
     // Empty command
-    if (!args1[0]) {
+    if (!args[0]) {
         free(cmd);
-        // free(args1);
-        return -1;
+        free(args);
+        return;
     }
     
     // handel cd cases
-    if (strcmp(args1[0], "cd") == 0) {
-        if (cd(args1[1]) < 0) {
-            perror(args1[1]);
+    if (strcmp(args[0], "cd") == 0) {
+        if (cd(args[1]) < 0) {
+            perror(args[1]);
         }
-        return -1;
+        return;
     }
 
-
     child_pid = fork();
+    // call not successful
     if (child_pid == 0) {
-        execvp(args1[0], args1);
+        execvp(args[0], args);
         printf("execvp not successful\n");
     } else {
-        if (cmdNum < 4) {
-            printf("im here\n");
-            exe(cmdNum + 1);
-        }
         waitpid(child_pid, &stat_loc, WUNTRACED);
     }
     free(cmd);
-    free(args1);
-    return 0;
+    free(args);
+    
 }
 
 char **get_command(char * cmd) {
-	char **args1 = malloc(8*sizeof(char*));
+	char **args = malloc(8*sizeof(char*));
 	const char *sep = " \n";
 	char *token;
 	int i = 0; 
 
 	token = strtok(cmd, sep);
 	while (token != NULL) {
-    	args1[i] = strdup(token);
+    	args[i] = strdup(token);
         token = strtok(NULL, sep);
 		i++;
 	} 	
-	args1[i] = NULL;
-	return args1;
+	args[i] = NULL;
+	return args;
 }
 
 // Handle cd cases
