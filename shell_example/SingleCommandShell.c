@@ -4,29 +4,37 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+char **get_command(char * input);
+
 int main(void) {
 	size_t len = 0;
 	ssize_t read = 0;
 	char *input;
-	char **args = malloc(8*sizeof(char*));
-	const char *sep = " ";
-	char *token;
-	int i = 0; 
-
+	char **args;
+	
 	printf("> ");
 	read = getline(&input, &len, stdin);
-	token = strtok(input, " \n");
-	printf("%s\n", token);
-	while (token != NULL) {
-		args[i] = strdup(token);
-		printf("%s\n", token);
-		token = strtok(NULL, " \n");
-		i++;
-	} 	
-	args[i] = NULL;
- 
+	
+	args = get_command(input);
 	execvp(args[0], args);
 
 	free(args);
 	return 0;
+}
+
+
+char **get_command(char * input) {
+	char **args = malloc(8*sizeof(char*));
+	const char *sep = " \n";
+	char *token;
+	int i = 0; 
+
+	token = strtok(input, sep);
+	while (token != NULL) {
+		args[i] = strdup(token);
+		token = strtok(NULL, sep);
+		i++;
+	} 	
+	args[i] = NULL;
+	return args;
 }
