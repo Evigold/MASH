@@ -16,9 +16,12 @@ int main() {
     while (1) {
         // input = readline("unixsh> ");
         size_t len;
+        int res;
         do {
             printf("unixsh> ");
-            if ((getline(&input, &len, stdin) < 0) || (len && input[0] == 'n')) {
+            res = getline(&input, &len, stdin);
+            printf("what%s\n", input);
+                if (( res < 0) || (len && input[0] == 'n')) {
                 printf("error: faulty input\n");
             } else {
                 printf("%s\n", input);
