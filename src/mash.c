@@ -17,26 +17,47 @@ int main(void) {
 }
 
 int exe() {
+    size_t len, write;
+    ssize_t readline = 0;
     char ***args = (char***)malloc(sizeof(char**)*3);;
-    int stat_loc[3], i;
     pid_t child_pid[3], check[3];
+    int des1[3][2], status, bytes_read = 0, stat_loc[3], i, j, k;
+    char readbuf[1024], charLine[80] = "-----CMD  : --------------------------------------------------------------------";  
+    char *file = (char*)malloc(sizeof(char)*len);
     
     for(i = 0; i < 3; i++) {
         args[i] = get_command(i);
+        if(pipe(des1[i]) == -1) {
+            perror("Pipe failed");
+            exit(1);
+        }
     }
 
+    printf("file>");
+    readline = getline(&file, &write, stdin);
+    
     child_pid[0] = fork();
    
     if (child_pid[0] == 0) {
-        waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
+        
+        close(STDOUT_FILENO);
+        dup(des1[0][1]);
+        close(des1[0][0]);
+        close(des1[0][1]);
+
         execvp(args[0][0], args[0]);
         printf("execvp not successful\n");
     } else {
         
         child_pid[1] = fork();
-        
+
         if (child_pid[1] == 0) {
-            waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
+        
+            close(STDOUT_FILENO);
+            dup(des1[1][1]);
+            close(des1[1][0]);
+            close(des1[1][1]);
+
             execvp(args[1][0], args[1]);
             printf("execvp not successful\n");
         } else {            
@@ -44,28 +65,50 @@ int exe() {
             child_pid[2] = fork();
             
             if (child_pid[2] == 0) {
-                // waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
+        
+                close(STDOUT_FILENO);
+                dup(des1[2][1]);
+                close(des1[2][0]);
+                close(des1[2][1]);
+
                 execvp(args[2][0], args[2]);
                 printf("execvp not successful\n");
             } else {
-                printf("Third process not yet processed...%d\n", (int) check[2]);            
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
-                printf("Third process finished...%d-%d\n", (int) check[2], (int) child_pid[2]);            
+                printf("Third process finished...\n");            
             }
             check[1] = waitpid(child_pid[1], &stat_loc[1], WUNTRACED);
-            printf("Second process finished...%d\n", (int) check[1]);            
+            printf("Second process finished...\n");            
         }
         check[0] = waitpid(child_pid[0], &stat_loc[0], WUNTRACED);
-        printf("First process finished...%d\n", (int) check[0]);            
+        printf("First process finished...\n");            
     }
     
     for(i = 0; i < 3; i++) {
+        j = 0;
+        k = 12;
+        printf("-----CMD %d: ", (i + 1));
+        while (args[i][j] != NULL) {
+            printf("%s", args[i][j]);
+            k += strlen(args[i][j]);
+            j++;
+        }
+        char * p = charLine + k;
+        printf("%s\n", p);
         if(check[i] == child_pid[i]) {
-            //TODO - print from pipe
+            close(des1[i][1]);
+            dup(des1[i][0]);
+
+            do {
+                bytes_read = read(des1[i][0], readbuf, sizeof(readbuf));
+                readbuf[bytes_read] = '\0';
+                printf("%.*s",bytes_read, readbuf);
+            } while (bytes_read > 0);
         }
     }
 
     free(args);
+    free(file);
     return 0;
 }
 

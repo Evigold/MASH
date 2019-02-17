@@ -28,7 +28,6 @@ int exe() {
     child_pid[0] = fork();
    
     if (child_pid[0] == 0) {
-        waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
         execvp(args[0][0], args[0]);
         printf("execvp not successful\n");
     } else {
@@ -36,7 +35,6 @@ int exe() {
         child_pid[1] = fork();
         
         if (child_pid[1] == 0) {
-            waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
             execvp(args[1][0], args[1]);
             printf("execvp not successful\n");
         } else {            
@@ -44,11 +42,9 @@ int exe() {
             child_pid[2] = fork();
             
             if (child_pid[2] == 0) {
-                // waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
                 execvp(args[2][0], args[2]);
                 printf("execvp not successful\n");
             } else {
-                printf("Third process not yet processed...%d\n", (int) check[2]);            
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
                 printf("Third process finished...%d-%d\n", (int) check[2], (int) child_pid[2]);            
             }
