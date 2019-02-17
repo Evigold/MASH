@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/time.h>
 
 int exe();
 
@@ -17,6 +18,7 @@ int main(void) {
 }
 
 int exe() {
+    struct timeval start[3], stop[3];
     size_t len, write;
     ssize_t readline = 0;
     char ***args = (char***)malloc(sizeof(char**)*3);;
@@ -44,7 +46,9 @@ int exe() {
         dup(des1[0][1]);
         close(des1[0][0]);
         close(des1[0][1]);
-
+    
+        gettimeofday(&start[0], NULL);
+    
         execvp(args[0][0], args[0]);
         printf("execvp not successful\n");
     } else {
@@ -57,6 +61,8 @@ int exe() {
             dup(des1[1][1]);
             close(des1[1][0]);
             close(des1[1][1]);
+
+            gettimeofday(&start[1], NULL);
 
             execvp(args[1][0], args[1]);
             printf("execvp not successful\n");
@@ -71,16 +77,22 @@ int exe() {
                 close(des1[2][0]);
                 close(des1[2][1]);
 
+                gettimeofday(&start[2], NULL);
+
                 execvp(args[2][0], args[2]);
+                
                 printf("execvp not successful\n");
             } else {
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
+                gettimeofday(&stop[2], NULL);
                 printf("Third process finished...\n");            
             }
             check[1] = waitpid(child_pid[1], &stat_loc[1], WUNTRACED);
+            gettimeofday(&stop[1], NULL);
             printf("Second process finished...\n");            
         }
         check[0] = waitpid(child_pid[0], &stat_loc[0], WUNTRACED);
+        gettimeofday(&stop[0], NULL);
         printf("First process finished...\n");            
     }
     
@@ -105,8 +117,10 @@ int exe() {
                 printf("%.*s",bytes_read, readbuf);
             } while (bytes_read > 0);
         }
+        int l = (int)(((stop[i].tv_sec)*1000 + (stop[i].tv_usec/1000)) - ((start[i].tv_sec*1000) + (start[i].tv_usec/1000)));
+        printf("Result took: %dms\n",  l);
     }
-
+    
     free(args);
     free(file);
     return 0;
