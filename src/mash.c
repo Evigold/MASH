@@ -28,6 +28,8 @@ int exe() {
     int des1[3][2], status, bytes_read = 0, stat_loc[3], i, j, k;
     char readbuf[1024], charLine[80] = "-----CMD  : --------------------------------------------------------------------";  
     char *file = (char*)malloc(sizeof(char)*len);
+
+    int file_handler = 0;
     
     for(i = 0; i < 3; i++) {
         args[i] = get_command(i);
@@ -43,6 +45,8 @@ int exe() {
     
     child_pid[0] = fork();
    
+    //Run process in first fork.
+    gettimeofday(&start[0], NULL);
     if (child_pid[0] == 0) {
         
         close(STDOUT_FILENO);
@@ -50,15 +54,14 @@ int exe() {
         close(des1[0][0]);
         close(des1[0][1]);
     
-        gettimeofday(&start[0], NULL);
-        printf("Start0: %ld \n", start[0].tv_sec);
-        printf("Start0: %ld \n", start[0].tv_usec);
+ 
         execvp(args[0][0], args[0]);
         printf("execvp not successful\n");
     } else {
         
         child_pid[1] = fork();
-
+        //Run process of 2nd fork.
+        gettimeofday(&start[1], NULL);
         if (child_pid[1] == 0) {
         
             close(STDOUT_FILENO);
@@ -66,15 +69,15 @@ int exe() {
             close(des1[1][0]);
             close(des1[1][1]);
 
-            gettimeofday(&start[1], NULL);
-            printf("Start1: %ld \n", start[1].tv_sec);
-            printf("Start1: %ld \n", start[1].tv_usec);
+ 
             execvp(args[1][0], args[1]);
             printf("execvp not successful\n");
         } else {            
             
             child_pid[2] = fork();
-            
+            //Run process of 3rd fork.
+
+            gettimeofday(&start[2], NULL);
             if (child_pid[2] == 0) {
 
                 close(STDOUT_FILENO);
@@ -82,28 +85,20 @@ int exe() {
                 close(des1[2][0]);
                 close(des1[2][1]);
 
-                gettimeofday(&start[2], NULL);
-                printf("Start2: %ld \n", start[2].tv_sec);
-                printf("Start2: %ld \n", start[2].tv_usec);
+
                 execvp(args[2][0], args[2]);
                 printf("execvp not successful\n");
             } else {
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
                 gettimeofday(&stop[2], NULL);
-                // printf("Stop2: %ld \n", stop[2].tv_sec);
-                // printf("Stop2: %ld \n", stop[2].tv_usec);
                 printf("Third process finished...\n");            
             }
             check[1] = waitpid(child_pid[1], &stat_loc[1], WUNTRACED);
             gettimeofday(&stop[1], NULL);
-            // printf("Stop1: %ld \n", stop[1].tv_sec);
-            // printf("Stop1: %ld \n", stop[1].tv_usec);
             printf("Second process finished...\n");            
         }
         check[0] = waitpid(child_pid[0], &stat_loc[0], WUNTRACED);
         gettimeofday(&stop[0], NULL);
-        // printf("Stop0: %ld", stop[0].tv_sec);
-        // printf("Stop0: %ld", stop[0].tv_usec);
         printf("First process finished...\n");            
     }
     
@@ -128,9 +123,7 @@ int exe() {
             } while (bytes_read > 0);
         }
 
-
         long l = get_time(&start[i], &stop[i]);
-        // long l = ((stop[i].tv_sec)*1000 + (stop[i].tv_usec/1000)) - ((start[i].tv_sec*1000) + (start[i].tv_usec/1000));
         printf("Result took: %ld ms\n",  l);
     }
     
@@ -140,14 +133,8 @@ int exe() {
 }
 
 long get_time(struct timeval * start, struct timeval * stop) {
-    // long elapsedTime = (stop->tv_sec * 1000 + stop->tv_usec / 1000) 
-    //                     - (start->tv_sec * 1000 + start->tv_usec / 1000);
-    printf("Start_sec %ld \n", start->tv_sec);
-    printf("Start_usec %ld \n", start->tv_usec);
-    printf("Stop_sec %ld \n", stop->tv_sec);
-    printf("Stop_usec %ld \n", stop->tv_usec);
-    long elapsedTime = stop->tv_usec - start->tv_usec;
-    printf("ElapsedTime: %ld \n", elapsedTime);
+    long elapsedTime = (stop->tv_sec * 1000 + stop->tv_usec / 1000) 
+                        - (start->tv_sec * 1000 + start->tv_usec / 1000);
     return elapsedTime;
 }
 
