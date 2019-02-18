@@ -11,6 +11,7 @@ char **get_command(int i);
 
 int cd(char *);
 
+void printFinished(int);
 void appendFile(char *, char ***);
 
 long get_time(struct timeval *, struct timeval *);
@@ -31,6 +32,7 @@ int exe() {
     int des1[3][2], status, bytes_read = 0, stat_loc[3], i, j, k;
     char readbuf[1024], charLine[80] = "-----CMD  : --------------------------------------------------------------------";  
     char *file = (char*)malloc(sizeof(char)*len);
+    int count = 0;
 
     int file_handler = 0;
     
@@ -103,15 +105,21 @@ int exe() {
             } else {
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
                 gettimeofday(&stop[2], NULL);
-                printf("Third process finished...\n");            
+                // printf("Third process finished...\n");   
+                count++;
+                printFinished(count);
             }
             check[1] = waitpid(child_pid[1], &stat_loc[1], WUNTRACED);
             gettimeofday(&stop[1], NULL);
-            printf("Second process finished...\n");            
+            // printf("Second process finished...\n");   
+            count++;
+            printFinished(count);         
         }
         check[0] = waitpid(child_pid[0], &stat_loc[0], WUNTRACED);
         gettimeofday(&stop[0], NULL);
-        printf("First process finished...\n");            
+        // printf("First process finished...\n"); 
+        count++;
+        printFinished(count);           
     }
     
     for(i = 0; i < 3; i++) {
@@ -119,8 +127,10 @@ int exe() {
         k = 12;
         printf("-----CMD %d: ", (i + 1));
         while (args[i][j] != NULL) {
-            printf("%s ", args[i][j]);
-            k += strlen(args[i][j]);
+            if (strcmp(args[i][j], file) != 0) {
+                printf("%s ", args[i][j]);
+                k += strlen(args[i][j]);
+            }
             j++;
         }
         char * p = charLine + k;
@@ -163,6 +173,16 @@ void appendFile(char * file, char ***args) {
                 j++;
             }
         }
+    }
+}
+
+void printFinished(int c) {
+    if (c == 1) {
+        printf("First process finished...\n");
+    } else if (c == 2) {
+        printf("Second process finished...\n");   
+    } else if (c == 3) {
+         printf("Third process finished...\n");  
     }
 }
 
