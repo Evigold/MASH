@@ -33,7 +33,7 @@ int exe() {
     char readbuf[1024], charLine[80] = "-----CMD  : --------------------------------------------------------------------";  
     char *file = (char*)malloc(sizeof(char)*len);
     int count = 0;
-
+    long totalTime = 0;
     int file_handler = 0;
     
     for(i = 0; i < 3; i++) {
@@ -146,9 +146,25 @@ int exe() {
         }
 
         long l = get_time(&start[i], &stop[i]);
+        totalTime += l;
         printf("Result took: %ld ms\n",  l);
     }
     
+    for (i = 0; i < 80; i++) {
+        printf("-");
+    }
+    printf("\nChildren process IDs: ");
+    for (i = 0; i < 3; i++) {
+        printf("%d", child_pid[i]);
+        if (i < 2) {
+            printf(" ");
+        } else {
+            printf(".\n");
+        }
+    }
+    printf("Total elapsed time:%ldms\n", totalTime);
+
+
     free(args);
     free(file);
     return 0;
