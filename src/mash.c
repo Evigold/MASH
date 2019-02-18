@@ -11,6 +11,8 @@ char **get_command(int i);
 
 int cd(char *);
 
+void appendFile(char *, char ***);
+
 long get_time(struct timeval *, struct timeval *);
 
 int main(void) {
@@ -21,6 +23,7 @@ int main(void) {
 
 int exe() {
     struct timeval start[3], stop[3];
+    char *token;
     size_t len, write;
     ssize_t readline = 0;
     char ***args = (char***)malloc(sizeof(char**)*3);;
@@ -32,6 +35,7 @@ int exe() {
     int file_handler = 0;
     
     for(i = 0; i < 3; i++) {
+        //Populate list of flags for command.
         args[i] = get_command(i);
         if(pipe(des1[i]) == -1) {
             perror("Pipe failed");
@@ -39,8 +43,17 @@ int exe() {
         }
     }
 
+    const char *sep = "\n";
     printf("file>");
     readline = getline(&file, &write, stdin);
+    //Tokenize and remove newline char.
+	token = strtok(file, sep);
+    if (token != NULL) {
+        file = strdup(token);
+    }
+
+    appendFile(&file[0], args);
+    printf("%s\n", &file[0]);
 
     
     child_pid[0] = fork();
@@ -54,7 +67,6 @@ int exe() {
         close(des1[0][0]);
         close(des1[0][1]);
     
- 
         execvp(args[0][0], args[0]);
         printf("execvp not successful\n");
     } else {
@@ -136,6 +148,22 @@ long get_time(struct timeval * start, struct timeval * stop) {
     long elapsedTime = (stop->tv_sec * 1000 + stop->tv_usec / 1000) 
                         - (start->tv_sec * 1000 + start->tv_usec / 1000);
     return elapsedTime;
+}
+
+void appendFile(char * file, char ***args) {
+    int i = 0;
+    for (i = 0; i < 3; i++) {
+        int j = 0;
+        while (j >= 0) {
+            if (args[i][j] == NULL) {
+                args[i][j] = file;
+                args[i][j + 1] = NULL;
+                j = -1;
+            } else {
+                j++;
+            }
+        }
+    }
 }
 
 char **get_command(int num) {
