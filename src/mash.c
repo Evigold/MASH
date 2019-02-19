@@ -105,72 +105,74 @@ int exe() {
             } else {
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
                 gettimeofday(&stop[2], NULL);
-                // printf("Third process finished...\n");   
                 count++;
                 printFinished(count);
             }
             check[1] = waitpid(child_pid[1], &stat_loc[1], WUNTRACED);
-            gettimeofday(&stop[1], NULL);
-            // printf("Second process finished...\n");   
+            gettimeofday(&stop[1], NULL); 
             count++;
             printFinished(count);         
         }
         check[0] = waitpid(child_pid[0], &stat_loc[0], WUNTRACED);
         gettimeofday(&stop[0], NULL);
-        // printf("First process finished...\n"); 
         count++;
         printFinished(count);           
     }
-    
-    for(i = 0; i < 3; i++) {
-        j = 0;
-        k = 12;
-        printf("-----CMD %d: ", (i + 1));
-        while (args[i][j] != NULL) {
-            if (strcmp(args[i][j], file) != 0) {
-                printf("%s ", args[i][j]);
-                k += strlen(args[i][j]);
+    if (count == 3) {
+        for(i = 0; i < 3; i++) {
+            j = 0;
+            k = 12;
+            printf("-----CMD %d: ", (i + 1));
+            while (args[i][j] != NULL) {
+                if (strcmp(args[i][j], file) != 0) {
+                    printf("%s ", args[i][j]);
+                    k += strlen(args[i][j]) + 1;
+                }
+                j++;
             }
-            j++;
-        }
-        char * p = charLine + k;
-        printf("%s\n", p);
-        if(check[i] == child_pid[i]) {
-            close(des1[i][1]);
-            dup(des1[i][0]);
-            do {
-                bytes_read = read(des1[i][0], readbuf, sizeof(readbuf));
-                readbuf[bytes_read] = '\0';
-                printf("%.*s",bytes_read, readbuf);
-            } while (bytes_read > 0);
+            char * p = charLine + k;
+            printf("%s\n", p);
+            if(check[i] == child_pid[i]) {
+                close(des1[i][1]);
+                dup(des1[i][0]);
+                do {
+                    bytes_read = read(des1[i][0], readbuf, sizeof(readbuf));
+                    readbuf[bytes_read] = '\0';
+                    printf("%.*s",bytes_read, readbuf);
+                } while (bytes_read > 0);
+            }
+
+            long l = get_time(&start[i], &stop[i]);
+            totalTime += l;
+            printf("Result took: %ld ms\n",  l);
         }
 
-        long l = get_time(&start[i], &stop[i]);
-        totalTime += l;
-        printf("Result took: %ld ms\n",  l);
-    }
-    
-    for (i = 0; i < 80; i++) {
-        printf("-");
-    }
-    printf("\nChildren process IDs: ");
-    for (i = 0; i < 3; i++) {
-        printf("%d", child_pid[i]);
-        if (i < 2) {
-            printf(" ");
-        } else {
-            printf(".\n");
+        for (i = 0; i < 80; i++) {
+            printf("-");
         }
+        printf("\nChildren process IDs: ");
+        for (i = 0; i < 3; i++) {
+            printf("%d", child_pid[i]);
+            if (i < 2) {
+                printf(" ");
+            } else {
+                printf(".\n");
+            }
+        }
+        printf("Total elapsed time:%ldms\n", totalTime);
     }
-    printf("Total elapsed time:%ldms\n", totalTime);
-
-
+ 
     free(args);
     free(file);
     return 0;
 }
 
 long get_time(struct timeval * start, struct timeval * stop) {
+    // long s0 = (start->tv_sec * 1000 + start->tv_usec / 1000);
+    // long s1 = (stop->tv_sec * 1000 + stop->tv_usec / 1000);
+    // printf("Start: %ld\n", s0);
+    // printf("Stop: %ld\n", s1);
+
     long elapsedTime = (stop->tv_sec * 1000 + stop->tv_usec / 1000) 
                         - (start->tv_sec * 1000 + start->tv_usec / 1000);
     return elapsedTime;
@@ -193,6 +195,7 @@ void appendFile(char * file, char ***args) {
 }
 
 void printFinished(int c) {
+    printf("%d\n", c);
     if (c == 1) {
         printf("First process finished...\n");
     } else if (c == 2) {
