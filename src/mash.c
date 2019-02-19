@@ -39,8 +39,7 @@ int exe() {
     struct timeval startTime;
     struct timeval endTime;
 
-    gettimeofday(&startTime, NULL);
-    
+        
     for(i = 0; i < 3; i++) {
         //Populate list of flags for command.
         args[i] = get_command(i);
@@ -65,18 +64,23 @@ int exe() {
     
     //Begin forking.
     child_pid[0] = fork();
-   
+   // Start timer for all executions
+   gettimeofday(&startTime, NULL);
+
     //Run process in first fork.
     gettimeofday(&start[0], NULL);
-    if (child_pid[0] == 0) {
+
+    if (child_pid[0] < 0 ) {
+        printf("CMD1:[SHELL 1] STATUS CODE=%d\n", -1);
+    } else if (child_pid[0] == 0) {
         
         close(STDOUT_FILENO);
         dup(des1[0][1]);
         close(des1[0][0]);
         close(des1[0][1]);
     
-        int ret = execvp(args[0][0], args[0]);
-        printf("CMD3:[SHELL 1] STATUS CODE=%d\n", ret);
+        execvp(args[0][0], args[0]);
+        printf("CMD1:[SHELL 1] STATUS CODE=%d\n", -1);
         // printf("execvp not successful\n");
         // printf("hello world1");
     } else {
@@ -84,7 +88,10 @@ int exe() {
         child_pid[1] = fork();
         //Run process of 2nd fork.
         gettimeofday(&start[1], NULL);
-        if (child_pid[1] == 0) {
+        
+        if (child_pid[1] < 0 ) {
+            printf("CMD2:[SHELL 2] STATUS CODE=%d\n", -1);
+        } else if (child_pid[1] == 0) {
         
             close(STDOUT_FILENO);
             dup(des1[1][1]);
@@ -92,15 +99,17 @@ int exe() {
             close(des1[1][1]);
 
  
-            int ret = execvp(args[1][0], args[1]);
-            printf("CMD3:[SHELL 2] STATUS CODE=%d\n", ret);
+            execvp(args[1][0], args[1]);
+            printf("CMD2:[SHELL 2] STATUS CODE=%d\n", -1);
         } else {            
             
             child_pid[2] = fork();
             //Run process of 3rd fork.
 
             gettimeofday(&start[2], NULL);
-            if (child_pid[2] == 0) {
+            if (child_pid[0] < 0 ) {
+                printf("CMD3:[SHELL 3] STATUS CODE=%d\n", -1);
+            } else if (child_pid[2] == 0) {
 
                 close(STDOUT_FILENO);
                 dup(des1[2][1]);
@@ -108,8 +117,8 @@ int exe() {
                 close(des1[2][1]);
 
 
-                int ret = execvp(args[2][0], args[2]);
-                printf("CMD3:[SHELL 3] STATUS CODE=%d\n", ret);
+                execvp(args[2][0], args[2]);
+                printf("CMD3:[SHELL 3] STATUS CODE=%d\n", -1);
                 // printf("hello world3");
             } else {
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
