@@ -58,6 +58,7 @@ int exe() {
     printf("%s\n", &file[0]);
 
     
+    //Begin forking.
     child_pid[0] = fork();
    
     //Run process in first fork.
@@ -106,17 +107,29 @@ int exe() {
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
                 gettimeofday(&stop[2], NULL);
                 count++;
-                printFinished(count);
+                if (check[2] == child_pid[2]) {
+                    printFinished(count);    
+                } else if (check[2] == -1) {
+                    //Add status code to printout
+                } 
             }
             check[1] = waitpid(child_pid[1], &stat_loc[1], WUNTRACED);
             gettimeofday(&stop[1], NULL); 
             count++;
-            printFinished(count);         
+            if (check[1] == child_pid[1]) {
+                printFinished(count);    
+            } else if (check[1] == -1) {
+                //Add status code to printout
+            }         
         }
         check[0] = waitpid(child_pid[0], &stat_loc[0], WUNTRACED);
         gettimeofday(&stop[0], NULL);
         count++;
-        printFinished(count);           
+        if (check[0] == child_pid[0]) {
+            printFinished(count);    
+        } else if (check[0] == -1){
+            //Add status code to printout
+        }  
     }
     if (count == 3) {
         for(i = 0; i < 3; i++) {
@@ -195,7 +208,6 @@ void appendFile(char * file, char ***args) {
 }
 
 void printFinished(int c) {
-    printf("%d\n", c);
     if (c == 1) {
         printf("First process finished...\n");
     } else if (c == 2) {
