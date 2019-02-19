@@ -35,6 +35,11 @@ int exe() {
     int count = 0;
     long totalTime = 0;
     int file_handler = 0;
+
+    struct timeval startTime;
+    struct timeval endTime;
+
+    gettimeofday(&startTime, NULL);
     
     for(i = 0; i < 3; i++) {
         //Populate list of flags for command.
@@ -70,8 +75,10 @@ int exe() {
         close(des1[0][0]);
         close(des1[0][1]);
     
-        execvp(args[0][0], args[0]);
-        printf("execvp not successful\n");
+        int ret = execvp(args[0][0], args[0]);
+        printf("CMD3:[SHELL 1] STATUS CODE=%d\n", ret);
+        // printf("execvp not successful\n");
+        // printf("hello world1");
     } else {
         
         child_pid[1] = fork();
@@ -85,8 +92,8 @@ int exe() {
             close(des1[1][1]);
 
  
-            execvp(args[1][0], args[1]);
-            printf("execvp not successful\n");
+            int ret = execvp(args[1][0], args[1]);
+            printf("CMD3:[SHELL 2] STATUS CODE=%d\n", ret);
         } else {            
             
             child_pid[2] = fork();
@@ -101,8 +108,9 @@ int exe() {
                 close(des1[2][1]);
 
 
-                execvp(args[2][0], args[2]);
-                printf("execvp not successful\n");
+                int ret = execvp(args[2][0], args[2]);
+                printf("CMD3:[SHELL 3] STATUS CODE=%d\n", ret);
+                // printf("hello world3");
             } else {
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
                 gettimeofday(&stop[2], NULL);
@@ -132,6 +140,7 @@ int exe() {
         }  
     }
     if (count == 3) {
+        gettimeofday(&endTime, NULL);
         for(i = 0; i < 3; i++) {
             j = 0;
             k = 12;
@@ -172,6 +181,8 @@ int exe() {
                 printf(".\n");
             }
         }
+
+        totalTime = get_time(&startTime, &endTime);
         printf("Total elapsed time:%ldms\n", totalTime);
     }
  
@@ -188,6 +199,7 @@ long get_time(struct timeval * start, struct timeval * stop) {
 
     long elapsedTime = (stop->tv_sec * 1000 + stop->tv_usec / 1000) 
                         - (start->tv_sec * 1000 + start->tv_usec / 1000);
+    // long elapsedTime = stop->tv_usec / 1000 - start->tv_usec / 1000;
     return elapsedTime;
 }
 
