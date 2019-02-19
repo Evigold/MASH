@@ -11,8 +11,9 @@ char **get_command(int i);
 
 int cd(char *);
 
-void printFinished(int);
-void appendFile(char *, char ***);
+void print_finished(int);
+
+void append_file(char *, char ***);
 
 long get_time(struct timeval *, struct timeval *);
 
@@ -52,20 +53,21 @@ int exe() {
     const char *sep = "\n";
     printf("file>");
     readline = getline(&file, &write, stdin);
-    //Tokenize and remove newline char.
+    //Tokenize and remove newline char from filename input.
 	token = strtok(file, sep);
     if (token != NULL) {
         file = strdup(token);
     }
 
-    appendFile(&file[0], args);
+    //Append the filename to the list of arguments of each command.
+    append_file(&file[0], args);
     printf("%s\n", &file[0]);
 
     
     //Begin forking.
     child_pid[0] = fork();
-   // Start timer for all executions
-   gettimeofday(&startTime, NULL);
+    // Start timer for all executions
+    gettimeofday(&startTime, NULL);
 
     //Run process in first fork.
     gettimeofday(&start[0], NULL);
@@ -81,8 +83,6 @@ int exe() {
     
         execvp(args[0][0], args[0]);
         printf("CMD1:[SHELL 1] STATUS CODE=%d\n", -1);
-        // printf("execvp not successful\n");
-        // printf("hello world1");
     } else {
         
         child_pid[1] = fork();
@@ -98,7 +98,6 @@ int exe() {
             close(des1[1][0]);
             close(des1[1][1]);
 
- 
             execvp(args[1][0], args[1]);
             printf("CMD2:[SHELL 2] STATUS CODE=%d\n", -1);
         } else {            
@@ -116,37 +115,29 @@ int exe() {
                 close(des1[2][0]);
                 close(des1[2][1]);
 
-
                 execvp(args[2][0], args[2]);
                 printf("CMD3:[SHELL 3] STATUS CODE=%d\n", -1);
-                // printf("hello world3");
             } else {
                 check[2] = waitpid(child_pid[2], &stat_loc[2], WUNTRACED);
                 gettimeofday(&stop[2], NULL);
                 count++;
                 if (check[2] == child_pid[2]) {
-                    printFinished(count);    
-                } else if (check[2] == -1) {
-                    //Add status code to printout
+                    print_finished(count);    
                 } 
             }
             check[1] = waitpid(child_pid[1], &stat_loc[1], WUNTRACED);
             gettimeofday(&stop[1], NULL); 
             count++;
             if (check[1] == child_pid[1]) {
-                printFinished(count);    
-            } else if (check[1] == -1) {
-                //Add status code to printout
-            }         
+                print_finished(count);    
+            }       
         }
         check[0] = waitpid(child_pid[0], &stat_loc[0], WUNTRACED);
         gettimeofday(&stop[0], NULL);
         count++;
         if (check[0] == child_pid[0]) {
-            printFinished(count);    
-        } else if (check[0] == -1){
-            //Add status code to printout
-        }  
+            print_finished(count);    
+        } 
     }
     if (count == 3) {
         gettimeofday(&endTime, NULL);
@@ -201,18 +192,12 @@ int exe() {
 }
 
 long get_time(struct timeval * start, struct timeval * stop) {
-    // long s0 = (start->tv_sec * 1000 + start->tv_usec / 1000);
-    // long s1 = (stop->tv_sec * 1000 + stop->tv_usec / 1000);
-    // printf("Start: %ld\n", s0);
-    // printf("Stop: %ld\n", s1);
-
     long elapsedTime = (stop->tv_sec * 1000 + stop->tv_usec / 1000) 
                         - (start->tv_sec * 1000 + start->tv_usec / 1000);
-    // long elapsedTime = stop->tv_usec / 1000 - start->tv_usec / 1000;
     return elapsedTime;
 }
 
-void appendFile(char * file, char ***args) {
+void append_file(char * file, char ***args) {
     int i = 0;
     for (i = 0; i < 3; i++) {
         int j = 0;
@@ -228,7 +213,7 @@ void appendFile(char * file, char ***args) {
     }
 }
 
-void printFinished(int c) {
+void print_finished(int c) {
     if (c == 1) {
         printf("First process finished...\n");
     } else if (c == 2) {
