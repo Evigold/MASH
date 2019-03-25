@@ -1,4 +1,11 @@
 CC=gcc
 
+binaries=mash
+
+all: $(binaries)
+
 mash: mash.c
-	$(CC) mash.c -o mash
+	$(CC) $^ -o $@
+
+clean:
+	$(RM) -f $(binaries) *.o
